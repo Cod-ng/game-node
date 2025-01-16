@@ -99,3 +99,29 @@ interface DeleteMessagesArgs {
     chat_id: string; // Target chat or channel ID
     message_ids: number[]; // Array of message IDs to delete
 }
+
+interface TelegramWebhookMessage {
+    message_id: number;
+    from: {
+        id: number;
+        is_bot: boolean;
+        first_name: string;
+        username?: string;
+        language_code?: string;
+    };
+    chat: {
+        id: number;
+        first_name: string;
+        username?: string;
+        type: string;
+    };
+    date: number;
+    text: string;
+}
+
+interface WebhookResponseDTO {
+    [messageId: number]: {
+        chatId: number;
+        text: string;
+    };
+}

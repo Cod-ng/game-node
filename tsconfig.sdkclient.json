@@ -1,0 +1,14 @@
+{
+    "extends": "./tsconfig.json",
+    "include": [
+        "src/**/*"
+    ],
+    "compilerOptions": {
+        "baseUrl": ".",
+        "outDir": "dist/@virtuals-protocol/game", // Output directory for the library
+        "declaration": true, // Generate declaration files
+        "declarationDir": "dist/@virtuals-protocol/game", // Directory for declaration files
+        "module": "commonjs", // CommonJS modules for compatibility
+        "esModuleInterop": true
+    }
+}

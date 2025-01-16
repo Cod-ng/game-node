@@ -11,7 +11,7 @@ export interface SimulateArgs {
     description: string;
     worldInfo: string;
     functions: string[];
-    customFunctions: { toJson: () => object }[];
+    customFunctions: any[];
 }
 
 // Interface for the `react` method parameters
@@ -22,7 +22,7 @@ export interface ReactArgs {
     description: string;
     worldInfo: string;
     functions: string[];
-    customFunctions: { toJson: () => object }[];
+    customFunctions: any[];
     event?: string;
     task?: string;
     tweetId?: string;

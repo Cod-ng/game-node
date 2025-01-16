@@ -13,7 +13,7 @@ class GameClient {
      * Get all default functions.
      * @returns Promise resolving to a map of function names and descriptions.
      */
-    async getFunctions(): Promise<{ [key: string]: string }> {
+    async getFunctions(): Promise<Record<string, string>> {
         const url = `${this.apiUrl}/functions`;
         try {
             const response: any = await apiRequest({
@@ -22,7 +22,7 @@ class GameClient {
                 headers: { "x-api-key": this.apiKey },
             });
 
-            const functions: { [key: string]: string } = {};
+            const functions: Record<string, string> = {};
             response.data.data.forEach((fn: { fn_name: string; fn_description: string }) => {
                 functions[fn.fn_name] = fn.fn_description;
             });
@@ -111,7 +111,7 @@ class GameClient {
      * @param args Deployment parameters
      * @returns Promise resolving to deployment result data.
      */
-    async deploy(args: DeployArgs): Promise<any> {
+    public async deploy(args: DeployArgs): Promise<any> {
         const url = `${this.apiUrl}/deploy`;
         try {
             const response: any = await apiRequest({
