@@ -27,8 +27,7 @@ describe("DiscordClient", () => {
             };
 
             const mockResponse = { id: "67890", content: args.content };
-
-            jest.spyOn(client, "sendMessage").mockResolvedValue(mockResponse);
+            (apiRequest as jest.Mock).mockResolvedValue(mockResponse);
 
             const result = await client.sendMessage(args);
 
@@ -55,6 +54,30 @@ describe("DiscordClient", () => {
 
             // Assert
             expect(result).toBe(true);
+            expect(apiRequest).toHaveBeenCalledWith({
+                method: "PUT",
+                url: `${baseURL}/channels/${args.channelId}/messages/${args.messageId}/reactions/${encodeURIComponent(args.emoji)}/@me`,
+                headers: {
+                    Authorization: `Bot ${botToken}`,
+                },
+            });
+        });
+        it("should handle network errors and return false", async () => {
+            const args = {
+                channelId: "12345",
+                messageId: "67890",
+                emoji: "👍",
+            };
+
+            // Mock
+            const mockError = new Error("Network Error");
+            (apiRequest as jest.Mock).mockRejectedValue(mockError);
+
+            // Act
+            const result = await client.addReaction(args);
+
+            // Assert
+            expect(result).toBe(false);
             expect(apiRequest).toHaveBeenCalledWith({
                 method: "PUT",
                 url: `${baseURL}/channels/${args.channelId}/messages/${args.messageId}/reactions/${encodeURIComponent(args.emoji)}/@me`,
@@ -90,6 +113,29 @@ describe("DiscordClient", () => {
                 },
             });
         });
+        it("should handle network errors and return false", async () => {
+            const args = {
+                channelId: "12345",
+                messageId: "67890",
+            };
+
+            // Mock
+            const mockError = new Error("Network Error");
+            (apiRequest as jest.Mock).mockRejectedValue(mockError);
+
+            // Act
+            const result = await client.pinMessage(args);
+
+            // Assert
+            expect(result).toBe(false);
+            expect(apiRequest).toHaveBeenCalledWith({
+                method: "PUT",
+                url: `${baseURL}/channels/${args.channelId}/pins/${args.messageId}`,
+                headers: {
+                    Authorization: `Bot ${botToken}`,
+                },
+            });
+        });
     });
 
     // Test for deleteMessage function
@@ -109,6 +155,29 @@ describe("DiscordClient", () => {
             
             // Assert
             expect(result).toEqual(true);
+            expect(apiRequest).toHaveBeenCalledWith({
+                method: "DELETE",
+                url: `${baseURL}/channels/${args.channelId}/messages/${args.messageId}`,
+                headers: {
+                    Authorization: `Bot ${botToken}`,
+                },
+            });
+        });
+        it("should handle network errors and return false", async () => {
+            const args: DiscordMessageArgs = {
+                channelId: "12345",
+                messageId: "67890",
+            };
+    
+            // Mock a network error
+            const mockError = new Error("Network Error");
+            (apiRequest as jest.Mock).mockRejectedValue(mockError);
+    
+            // Act
+            const result = await client.deleteMessage(args);
+    
+            // Assert
+            expect(result).toEqual(false);
             expect(apiRequest).toHaveBeenCalledWith({
                 method: "DELETE",
                 url: `${baseURL}/channels/${args.channelId}/messages/${args.messageId}`,
