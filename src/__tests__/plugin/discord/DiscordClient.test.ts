@@ -1,4 +1,4 @@
-import DiscordClient from "../../../plugin/discord/discord";
+import DiscordClient from "../../../plugins/discord/discord";
 import { apiRequest } from "../../../util/api"; // Import the actual apiRequest method to mock it
 
 jest.mock("../../../__mocks__/apiRequest"); // Mock the apiRequest function
