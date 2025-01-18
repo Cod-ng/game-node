@@ -1,14 +1,34 @@
 
 // File: Function.ts
 import axios, { AxiosRequestConfig } from "axios";
-import { FunctionArgument } from "./functionArguement";
 import { FunctionConfig } from "./functionConfig";
 import { v4 as uuidv4 } from "uuid";
+
+
+export interface GameFunctionArg {
+    name: string;
+    description: string;
+    type: string;
+    id?: string;
+}
+
+export class GameFunctionArgImpl implements GameFunctionArg {
+    id: string;
+
+    constructor(
+        public name: string,
+        public description: string,
+        public type: string,
+        id?: string
+    ) {
+        this.id = id || uuidv4();
+    }
+}
 
 export interface Function {
     fnName: string;
     fnDescription: string;
-    args: FunctionArgument[];
+    args: GameFunctionArg[];
     config: FunctionConfig;
     hint?: string;
     id?: string;
@@ -21,7 +41,7 @@ export class FunctionImpl implements Function {
     constructor(
         public fnName: string,
         public fnDescription: string,
-        public args: FunctionArgument[],
+        public args: GameFunctionArg[],
         public config: FunctionConfig,
         public hint: string = "",
         id?: string

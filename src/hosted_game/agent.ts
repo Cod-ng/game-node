@@ -3,7 +3,16 @@
 import GameClient from "../plugins/game/gameClient";
 import { Function } from "./function";
 
-export class Agent {
+interface IHostedGameAgent {
+    name: string;
+    goal: string;
+    description: string;
+    workers: GameWorker[];
+    getAgentState?: () => Promise<Record<string, any>>;
+}
+
+
+class HostedGameAgent implements IHostedGameAgent {
     private enabledFunctions: string[] = [];
     private customFunctions: Function[] = [];
     private gameSdk: GameClient;
@@ -124,3 +133,5 @@ export class Agent {
         return exportJson;
     }
 }
+
+export default HostedGameAgent;
