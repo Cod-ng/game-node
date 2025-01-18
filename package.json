@@ -6,7 +6,7 @@
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "test": "jest",
+        "test": "jest --coverage",
         "build": "npm run build:node",
         "build:node": "tsc && tsc -p tsconfig.sdkclient.json && copyfiles package.json dist/@virtuals-protocol/game",
         "tsup": "tsup src/index.ts --dts --format cjs,esm --out-dir dist"

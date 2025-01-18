@@ -1,4 +1,4 @@
-import TelegramClient from "../../../plugin/telegram/telegram";
+import TelegramClient from "../../../plugins/telegram/telegram";
 import { apiRequest } from "../../../util/api";
 
 // Mock the apiRequest function
@@ -79,12 +79,44 @@ describe("TelegramClient", () => {
                 })
             );
 
-            // Verify the result contains the expected output for each message ID
-            // expect(result).toEqual({
-            //     1: true,
-            //     2: true,
-            //     3: true,
-            // });
+            //Verify the result contains the expected output for each message ID
+            expect(result).toEqual({
+                1: true,
+                2: true,
+                3: true,
+            });
+        });
+        it("should handle error during delete messages", async () => {
+            // Mock the apiRequest return error
+            const mockError = new Error("Network Error");
+            (apiRequest as jest.Mock).mockResolvedValue(mockError);
+
+            const args = {
+                chat_id: "1234",
+                message_ids: [1, 2, 3],
+            };
+
+            const result = await client.deleteMessages(args);
+
+            // Check if apiRequest was called for each message ID
+            expect(apiRequest).toHaveBeenCalledTimes(3);
+            expect(apiRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    method: "post",
+                    url: `https://api.telegram.org/bot${botToken}/deleteMessage`,
+                    data: expect.objectContaining({
+                        chat_id: args.chat_id,
+                        message_id: expect.any(Number),
+                    }),
+                })
+            );
+
+            //Verify the result contains the expected output for each message ID
+            expect(result).toEqual({
+                1: undefined,
+                2: undefined,
+                3: undefined,
+            });
         });
     });
 
@@ -103,22 +135,22 @@ describe("TelegramClient", () => {
                     caption: "Test caption",
                 },
             };
-    
+
             // Mock apiRequest to resolve with a successful response
             (apiRequest as jest.Mock).mockResolvedValue(mockResponse);
-    
+
             const args: SendMediaArgs = {
                 chat_id: "1234",
                 media_type: "photo",
-                media: "mockedfileurl" ,
+                media: "mockedfileurl",
                 caption: "Test caption",
                 parse_mode: "Markdown",
                 disable_notification: false,
                 reply_to_message_id: 5678,
             };
-    
+
             const result = await client.sendMedia(args);
-    
+
             // Check if the apiRequest was called with the correct URL and payload
             expect(apiRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -134,29 +166,29 @@ describe("TelegramClient", () => {
                     }),
                 })
             );
-    
+
             // Verify that the result matches the mock response
             expect(result).toEqual(mockResponse);
         });
         it("should handle error while send media", async () => {
-            
+
             const args: SendMediaArgs = {
                 chat_id: "1234",
                 media_type: "photo",
-                media: "mockedfileurl" ,
+                media: "mockedfileurl",
                 parse_mode: "Markdown",
                 disable_notification: false,
                 reply_to_message_id: 5678,
             };
-    
+
             // Mock apiRequest to resolve with a successful response
             (apiRequest as jest.Mock).mockResolvedValue({
                 ok: false,
                 result: null,
             });
-    
+
             const result = await client.sendMedia(args);
-    
+
             // Expect the result to handle the error gracefully
             expect(result.ok).toBe(false);
         });
@@ -192,10 +224,10 @@ describe("TelegramClient", () => {
                     },
                 },
             };
-    
+
             // Mock apiRequest to resolve with the mockResponse
             (apiRequest as jest.Mock).mockResolvedValue(mockResponse);
-    
+
             // Arguments for creating a poll
             const args = {
                 chat_id: "1234",
@@ -204,9 +236,9 @@ describe("TelegramClient", () => {
                 is_anonymous: true,
                 allows_multiple_answers: false,
             };
-    
+
             const result = await client.createPoll(args);
-    
+
             // Check if the apiRequest was called with the correct URL and payload
             expect(apiRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -221,10 +253,10 @@ describe("TelegramClient", () => {
                     }),
                 })
             );
-    
+
             // Verify that the result matches the mock response
             expect(result).toEqual(mockResponse);
-    
+
             // Additionally, verify the structure of the poll
             expect(result.result.poll.id).toBe("poll123");
             expect(result.result.poll.question).toBe("What is your favorite color?");
@@ -249,19 +281,19 @@ describe("TelegramClient", () => {
                     date: 1617181920,
                 },
             };
-    
+
             // Mock apiRequest to resolve with the mockResponse
             (apiRequest as jest.Mock).mockResolvedValue(mockResponse);
-    
+
             // Arguments for updating the pinned message
             const args = {
                 chat_id: "1234",
                 message_id: 67890, // Message ID to pin
                 disable_notification: true, // Disable notification
             };
-    
+
             const result = await client.updatePinnedMessage(args);
-    
+
             // Check if the apiRequest was called with the correct URL and payload
             expect(apiRequest).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -274,9 +306,58 @@ describe("TelegramClient", () => {
                     }),
                 })
             );
-    
+
             // Verify that the result matches the mock response
             expect(result).toEqual(mockResponse);
+        });
+    });
+
+    describe('ReceivedWebhook', () => {
+        it('should return a valid WebhookResponseDTO when receive webhook', async () => {
+            const request = {
+                message: {
+                    chat: { id: '12345' },
+                    text: 'Hello, world!'
+                }
+            };
+
+            // Act
+            const response = await client.webhook(request);
+
+            // Assert
+            expect(response).toEqual({
+                chatId: '12345',
+                text: 'You said: "Hello, world!"'
+            });
+        });
+    });
+
+    describe('setWebhook', () => {
+        it('should call apiRequest and log success when webhook is set successfully', async () => {
+            const webhookUrl = 'http://example.com/webhook';
+            const mockResponse = {
+                ok: true,
+                data: { description: 'Webhook set' }
+            };
+
+            // Mock apiRequest to resolve with the mockResponse
+            (apiRequest as jest.Mock).mockResolvedValue(mockResponse);
+
+            // Mocking console.log to spy on log outputs
+            console.log = jest.fn();
+
+            // Act
+            await client.setWebhook(webhookUrl);
+
+            // Assert response
+            expect(apiRequest).toHaveBeenCalledWith({
+                method: 'post',
+                url: `https://api.telegram.org/bot${botToken}/setWebhook`,
+                data: { url: webhookUrl }
+            });
+            // Assert logs
+            expect(console.log).toHaveBeenCalledWith('Response:', mockResponse);
+            expect(console.log).toHaveBeenCalledWith('Webhook set successfully:', mockResponse.data);
         });
     });
 });
