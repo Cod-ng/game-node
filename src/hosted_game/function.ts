@@ -1,9 +1,45 @@
 
 // File: Function.ts
 import axios, { AxiosRequestConfig } from "axios";
-import { FunctionConfig } from "./functionConfig";
 import { v4 as uuidv4 } from "uuid";
 
+export interface FunctionConfig {
+    method?: string;
+    url?: string;
+    headers?: Record<string, any>;
+    payload?: Record<string, any>;
+    success_feedback?: string;
+    error_feedback?: string;
+    isMainLoop?: boolean;
+    isReaction?: boolean;
+    headersString?: string;
+    payloadString?: string;
+    platform?: string;
+}
+
+export class FunctionConfigImpl implements FunctionConfig {
+    headers: Record<string, any>;
+    payload: Record<string, any>;
+    headersString: string;
+    payloadString: string;
+
+    constructor(
+        public method: string = "GET",
+        public url: string = "",
+        headers: Record<string, any> = {},
+        payload: Record<string, any> = {},
+        public successFeedback: string = "",
+        public errorFeedback: string = "",
+        public isMainLoop: boolean = false,
+        public isReaction: boolean = false,
+        public platform?: string
+    ) {
+        this.headers = headers;
+        this.payload = payload;
+        this.headersString = JSON.stringify(headers, null, 4);
+        this.payloadString = JSON.stringify(payload, null, 4);
+    }
+}
 
 export interface GameFunctionArg {
     name: string;
@@ -25,22 +61,38 @@ export class GameFunctionArgImpl implements GameFunctionArg {
     }
 }
 
-export interface Function {
-    fnName: string;
-    fnDescription: string;
+export type ExecutableGameFunction = {
+    fn_name: string;
+    fn_description: string;
     args: GameFunctionArg[];
     config: FunctionConfig;
     hint?: string;
     id?: string;
-    toJson(): Record<string, any>;
+    // toJson(): Record<string, any>;
 }
 
-export class FunctionImpl implements Function {
+// export type GameFunctionBase = {
+//   name: string;
+//   description: string;
+//   args: GameFunctionArg[];
+//   executable: (
+//     args: Record<string, string>,
+//     logger: (msg: string) => void
+//   ) => Promise<ExecutableGameFunctionResponse>;
+//   hint?: string;
+//   execute: (
+//     args: Record<string, { value: string }>,
+//     logger: (msg: string) => void
+//   ) => Promise<ExecutableGameFunctionResponse>;
+//   toJSON(): Object;
+// };
+
+export class ExecutableGameFunctionImpl implements ExecutableGameFunction {
     id: string;
 
     constructor(
-        public fnName: string,
-        public fnDescription: string,
+        public fn_name: string,
+        public fn_description: string,
         public args: GameFunctionArg[],
         public config: FunctionConfig,
         public hint: string = "",
@@ -52,8 +104,8 @@ export class FunctionImpl implements Function {
     toJson(): Record<string, any> {
         return {
             id: this.id,
-            fn_name: this.fnName,
-            fn_description: this.fnDescription,
+            fn_name: this.fn_name,
+            fn_description: this.fn_description,
             args: this.args,
             hint: this.hint,
             config: this.config,
@@ -113,63 +165,17 @@ export class FunctionImpl implements Function {
         try {
             const response = await axios(requestConfig);
             if (response.status >= 200 && response.status < 300) {
-                if (this.config.successFeedback) {
-                    console.log(this.interpolateTemplate(this.config.successFeedback, { ...argDict, response: response.data }));
+                if (this.config.success_feedback) {
+                    console.log(this.interpolateTemplate(this.config.success_feedback, { ...argDict, response: response.data }));
                 }
                 return response.data;
             }
         } catch (error: any) {
             const errorMsg = error.response?.data || error.message;
-            if (this.config.errorFeedback) {
-                console.log(this.interpolateTemplate(this.config.errorFeedback, { ...argDict, response: errorMsg }));
+            if (this.config.error_feedback) {
+                console.log(this.interpolateTemplate(this.config.error_feedback, { ...argDict, response: errorMsg }));
             }
             throw new Error(`Request failed: ${JSON.stringify(errorMsg)}`);
         }
     }
 }
-
-
-class GameFunction<T extends GameFunctionArg[]> implements IGameFunction<T> {
-    public name: string;
-    public description: string;
-    public args: T;
-    public executable: (
-      args: Partial<ExecutableArgs<T>>,
-      logger: (msg: string) => void
-    ) => Promise<ExecutableGameFunctionResponse>;
-    public hint?: string;
-  
-    constructor(options: IGameFunction<T>) {
-      this.name = options.name;
-      this.description = options.description;
-      this.args = options.args;
-      this.executable = options.executable;
-      this.hint = options.hint;
-    }
-  
-    toJSON() {
-      return {
-        fn_name: this.name,
-        fn_description: this.description,
-        args: this.args,
-        hint: this.hint,
-      };
-    }
-  
-    async execute(
-      args: {
-        [key in GameFunctionArg["name"]]: { value: string };
-      },
-      logger: (msg: string) => void
-    ) {
-      const argValues: ExecutableArgs<T> = Object.keys(args).reduce(
-        (acc, key) => {
-          acc[key as keyof ExecutableArgs<T>] = args[key]?.value;
-          return acc;
-        },
-        {} as ExecutableArgs<T>
-      );
-  
-      return await this.executable(argValues, logger);
-    }
-  }

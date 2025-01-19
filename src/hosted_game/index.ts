@@ -6,15 +6,14 @@
 
 import HostedGameAgent from "./agent";
 // import GameWorker from "./worker";
-import GameFunction, {
-    ExecutableGameFunctionResponse,
-    ExecutableGameFunctionStatus,
+import {
+    ExecutableGameFunction,
 } from "./function";
 
 export {
     HostedGameAgent,
-    GameFunction,
+    ExecutableGameFunction,
     // GameWorker,
-    ExecutableGameFunctionResponse,
-    ExecutableGameFunctionStatus,
+    // ExecutableGameFunctionResponse,
+    // ExecutableGameFunctionStatus,
 };

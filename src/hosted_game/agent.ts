@@ -1,7 +1,9 @@
 
 // File: Agent.ts
-import GameClient from "../plugins/game/gameClient";
-import { Function } from "./function";
+import GameClient from "./api";
+import { ExecutableGameFunction } from "./function";
+import DiscordClient from "./functions/discordPlugin";
+import TelegramClient from "./functions/telegramPlugin";
 
 interface IHostedGameAgent {
     name: string;
@@ -9,14 +11,13 @@ interface IHostedGameAgent {
     description: string;
     // workerId: string;
     worldInfo: string;
-    functions: string[];
-    customFunctions: any[];
-    mainHeartbeat: number;
-    reactionHeartbeat: number;
+    functions?: string[];
+    customFunctions?: any[];
+    mainHeartbeat?: number;
+    reactionHeartbeat?: number;
     // workers: GameWorker[];
     // getAgentState?: () => Promise<Record<string, any>>;
 }
-
 
 class HostedGameAgent implements IHostedGameAgent {
 
@@ -29,9 +30,13 @@ class HostedGameAgent implements IHostedGameAgent {
     public mainHeartbeat: number = 15;
     public reactionHeartbeat: number = 5;
     public gameClient: GameClient;
+    public telegramClient: TelegramClient;
+    public discordClient: DiscordClient;
 
     constructor(apiKey: string, options: IHostedGameAgent) {
         this.gameClient = new GameClient(apiKey);
+        this.telegramClient = new TelegramClient(apiKey);
+        this.discordClient = new DiscordClient(apiKey);
         // this.workerId = options.workers[0].id;
 
         this.name = options.name;
@@ -59,25 +64,6 @@ class HostedGameAgent implements IHostedGameAgent {
         // this.agentId = agent.id;
     }
 
-    // private enabledFunctions: string[] = [];
-    // private customFunctions: Function[] = [];
-    // private gameSdk: GameClient;
-    // constructor(
-    //     private apiKey: string,
-    //     private worldInfo: string = "",
-    //     private mainHeartbeat: number = 15,
-    //     private reactionHeartbeat: number = 5
-    // ) {
-    //     this.gameSdk = new GameClient(apiKey);
-    // }
-
-    setGoal(goal: string): void {
-        this.goal = goal;
-    }
-
-    setDescription(description: string): void {
-        this.description = description;
-    }
 
     /**
      * List all of the default functions (currently default functions are only available for Twitter/X platform)
@@ -91,7 +77,7 @@ class HostedGameAgent implements IHostedGameAgent {
      * Enable built-in functions by default
      * @param functions 
      */
-    useDefaultTwitterFunctions(functions: string[]): void {
+    useDefaultFunctions(functions: string[]): void {
         this.functions = functions;
     }
 
@@ -100,7 +86,7 @@ class HostedGameAgent implements IHostedGameAgent {
      * Custom functions are automatically added and enabled
      * @param customFunction 
      */
-    addCustomFunction(customFunction: Function): void {
+    addCustomFunction(customFunction: ExecutableGameFunction): void {
         this.customFunctions.push(customFunction);
     }
 
