@@ -5,7 +5,7 @@
 
 
 import HostedGameAgent from "./agent";
-import GameWorker from "./worker";
+// import GameWorker from "./worker";
 import GameFunction, {
     ExecutableGameFunctionResponse,
     ExecutableGameFunctionStatus,
@@ -14,7 +14,7 @@ import GameFunction, {
 export {
     HostedGameAgent,
     GameFunction,
-    GameWorker,
+    // GameWorker,
     ExecutableGameFunctionResponse,
     ExecutableGameFunctionStatus,
 };

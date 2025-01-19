@@ -106,7 +106,7 @@ export class FunctionImpl implements Function {
         };
     }
 
-    async invoke(...args: any[]): Promise<any> {
+    async excute(...args: any[]): Promise<any> {
         const argDict = this.validateArgs(args);
         const requestConfig = this.prepareRequest(argDict);
 
@@ -127,3 +127,49 @@ export class FunctionImpl implements Function {
         }
     }
 }
+
+
+class GameFunction<T extends GameFunctionArg[]> implements IGameFunction<T> {
+    public name: string;
+    public description: string;
+    public args: T;
+    public executable: (
+      args: Partial<ExecutableArgs<T>>,
+      logger: (msg: string) => void
+    ) => Promise<ExecutableGameFunctionResponse>;
+    public hint?: string;
+  
+    constructor(options: IGameFunction<T>) {
+      this.name = options.name;
+      this.description = options.description;
+      this.args = options.args;
+      this.executable = options.executable;
+      this.hint = options.hint;
+    }
+  
+    toJSON() {
+      return {
+        fn_name: this.name,
+        fn_description: this.description,
+        args: this.args,
+        hint: this.hint,
+      };
+    }
+  
+    async execute(
+      args: {
+        [key in GameFunctionArg["name"]]: { value: string };
+      },
+      logger: (msg: string) => void
+    ) {
+      const argValues: ExecutableArgs<T> = Object.keys(args).reduce(
+        (acc, key) => {
+          acc[key as keyof ExecutableArgs<T>] = args[key]?.value;
+          return acc;
+        },
+        {} as ExecutableArgs<T>
+      );
+  
+      return await this.executable(argValues, logger);
+    }
+  }
