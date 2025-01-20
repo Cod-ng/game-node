@@ -67,27 +67,11 @@ export type ExecutableGameFunction = {
     args: GameFunctionArg[];
     config: FunctionConfig;
     hint?: string;
-    id?: string;
+    id?: string
     // toJson(): Record<string, any>;
 }
 
-// export type GameFunctionBase = {
-//   name: string;
-//   description: string;
-//   args: GameFunctionArg[];
-//   executable: (
-//     args: Record<string, string>,
-//     logger: (msg: string) => void
-//   ) => Promise<ExecutableGameFunctionResponse>;
-//   hint?: string;
-//   execute: (
-//     args: Record<string, { value: string }>,
-//     logger: (msg: string) => void
-//   ) => Promise<ExecutableGameFunctionResponse>;
-//   toJSON(): Object;
-// };
-
-export class ExecutableGameFunctionImpl implements ExecutableGameFunction {
+export class ExecutableHostedGameFunction {
     id: string;
 
     constructor(
@@ -112,14 +96,13 @@ export class ExecutableGameFunctionImpl implements ExecutableGameFunction {
         };
     }
 
-    private validateArgs(args: any[]): Record<string, any> {
-        if (args.length !== this.args.length) {
-            throw new Error(`Expected ${this.args.length} arguments, got ${args.length}`);
-        }
-
+    private validateArgs(args: {
+          [key in GameFunctionArg["name"]]: { value: string };
+        }): Record<string, any> {
+    
         const argDict: Record<string, any> = {};
         this.args.forEach((argDef, index) => {
-            const value = args[index];
+            const value = args[this.args[index].name];
 
             if (argDef.type === "string" && typeof value !== "string") {
                 throw new TypeError(`Argument ${argDef.name} must be a string`);
@@ -158,10 +141,11 @@ export class ExecutableGameFunctionImpl implements ExecutableGameFunction {
         };
     }
 
-    async excute(...args: any[]): Promise<any> {
+    async execute(args: {
+          [key in GameFunctionArg["name"]]: { value: string };
+        }): Promise<any> {
         const argDict = this.validateArgs(args);
         const requestConfig = this.prepareRequest(argDict);
-
         try {
             const response = await axios(requestConfig);
             if (response.status >= 200 && response.status < 300) {
